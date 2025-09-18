@@ -1,3 +1,4 @@
+
 packet-scope
 GoShark is a lightweight network packet monitoring and analysis tool written in Go. It demonstrates how to separate domain logic from infrastructure using Domain-Driven Design (DDD) principles, while providing basic packet sniffing and analysis features.
 
@@ -6,6 +7,8 @@ packet-scope/
 ├── cmd/
 │   └── monitor/
 │       └── main.go                  # Application entry point
+├── config/
+│   └── config.yaml                  # Configuration file
 ├── internal/
 │   ├── domain/
 │   │   └── model/
@@ -21,13 +24,9 @@ packet-scope/
 │   ├── interface/
 │   │   ├── logger/
 │   │   │   └── logger.go            # Logging configuration
-│   │   └── handler/
-│   │       └── packet_handler.go    # HTTP or CLI handlers
 ├── pkg/
 │   └── utils/
 │       └── utils.go                 # Shared utility functions
-├── config/
-│   └── config.yaml                  # Configuration file
 ├── go.mod
 ├── go.sum
 └── README.md
@@ -49,5 +48,5 @@ packet-scope/
 
 ### ⚠️ Troubleshooting: `panic: couldn't load wpcap.dll`
 
-To capture network packets on Windows, you need Npcap (recommended) or WinPcap (obsolete).  
+To capture network packets on Windows, you need Npcap (recommended) or WinPcap (obsolete).
 **Download and install Npcap:** [https://nmap.org/npcap/](https://nmap.org/npcap/)
