@@ -1,5 +1,4 @@
-packet-scope
-GoShark is a lightweight network packet monitoring and analysis tool written in Go. It demonstrates how to separate domain logic from infrastructure using Domain-Driven Design (DDD) principles, while providing basic packet sniffing and analysis features.
+packet-scope is a lightweight network packet monitoring and analysis tool written in Go. It demonstrates how to separate domain logic from infrastructure using Domain-Driven Design (DDD) principles, while providing basic packet sniffing and analysis features.
 
 ```
 packet-scope/
