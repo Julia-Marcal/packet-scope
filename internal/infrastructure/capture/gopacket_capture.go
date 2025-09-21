@@ -1,10 +1,9 @@
 package capture
 
 import (
-	"fmt"
-	"log"
 	"time"
 
+	"github.com/Julia-Marcal/packet-scope/pkg/logger"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -16,7 +15,7 @@ func StartCapture(devices []pcap.Interface, localIP string) {
 			handle, err := pcap.OpenLive(deviceName, 65536, true, pcap.BlockForever)
 
 			if err != nil {
-				log.Printf("Error opening device %s: %v", deviceName, err)
+				logger.Error("Error opening device %s: %v", deviceName, err)
 				return
 			}
 
@@ -26,6 +25,11 @@ func StartCapture(devices []pcap.Interface, localIP string) {
 
 			for packet := range packetSource.Packets() {
 				networkLayer := packet.NetworkLayer()
+
+				if networkLayer == nil {
+					continue
+				}
+
 				src, _ := networkLayer.NetworkFlow().Endpoints()
 
 				if ignorePacket(src.String(), localIP, networkLayer) {
@@ -57,20 +61,26 @@ func logPacketInfo(deviceName string, packet gopacket.Packet) {
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	udpLayer := packet.Layer(layers.LayerTypeUDP)
 
-	fmt.Printf("[%s] %s | Len=%d | ", deviceName, time.Now().Format("15:04:05"), len(packet.Data()))
+	msg := "[%s] %s | Len=%d | "
+	args := []interface{}{deviceName, time.Now().Format("15:04:05"), len(packet.Data())}
 
 	if ipLayer != nil {
 		ip := ipLayer.(*layers.IPv4)
-		fmt.Printf("IP %s -> %s ", ip.SrcIP, ip.DstIP)
+		msg += "IP %s -> %s "
+		args = append(args, ip.SrcIP, ip.DstIP)
 	}
 
 	if tcpLayer != nil {
 		tcp := tcpLayer.(*layers.TCP)
-		fmt.Printf("| TCP %d -> %d\n", tcp.SrcPort, tcp.DstPort)
+		msg += "| TCP %d -> %d"
+		args = append(args, tcp.SrcPort, tcp.DstPort)
 	} else if udpLayer != nil {
 		udp := udpLayer.(*layers.UDP)
-		fmt.Printf("| UDP %d -> %d\n", udp.SrcPort, udp.DstPort)
+		msg += "| UDP %d -> %d"
+		args = append(args, udp.SrcPort, udp.DstPort)
 	} else {
-		fmt.Printf("| Other protocol\n")
+		msg += "| Other protocol"
 	}
+
+	logger.Info(msg, args...)
 }
