@@ -8,8 +8,6 @@ import (
 	"github.com/Julia-Marcal/packet-scope/internal/domain/filters"
 	"github.com/Julia-Marcal/packet-scope/internal/domain/model"
 	"github.com/Julia-Marcal/packet-scope/internal/infrastructure/capture"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 )
 
@@ -30,13 +28,15 @@ func StartAnalysis() error {
 
 	log.Printf("Starting packet capture on %d interfaces with local IP: %s", len(devices), localIP)
 
-	allowed := []model.AllowedProtocols{
-		{Protocols: map[gopacket.LayerType]bool{layers.LayerTypeIPv4: true}},
-		{Protocols: map[gopacket.LayerType]bool{layers.LayerTypeIPv6: true}},
-		{Protocols: map[gopacket.LayerType]bool{layers.LayerTypeTCP: true}},
-		{Protocols: map[gopacket.LayerType]bool{layers.LayerTypeUDP: true}},
+	packetFilter := model.PacketFilter{
+		AllowedProtocols: []model.NetworkProtocol{
+			model.IPv4,
+			model.IPv6,
+			model.TCP,
+			model.UDP,
+		},
 	}
-	capture.StartCapture(devices, localIP, filters.FilterProtocolsType(allowed))
+	capture.StartCapture(devices, localIP, filters.FilterProtocolsType(packetFilter))
 	return nil
 }
 
