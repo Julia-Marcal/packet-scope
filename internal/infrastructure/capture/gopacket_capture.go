@@ -9,7 +9,7 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-func StartCapture(devices []pcap.Interface, localIP string) {
+func StartCapture(devices []pcap.Interface, localIP string, allowedProtocols map[string]bool) {
 	for _, device := range devices {
 		go func(deviceName string) {
 			handle, err := pcap.OpenLive(deviceName, 65536, true, pcap.BlockForever)
@@ -36,7 +36,7 @@ func StartCapture(devices []pcap.Interface, localIP string) {
 					continue
 				}
 
-				logPacketInfo(deviceName, packet)
+				logPacketInfo(deviceName, packet, allowedProtocols)
 			}
 		}(device.Name)
 	}
@@ -56,7 +56,7 @@ func ignorePacket(src string, localIP string, networkLayer gopacket.NetworkLayer
 	return false
 }
 
-func logPacketInfo(deviceName string, packet gopacket.Packet) {
+func logPacketInfo(deviceName string, packet gopacket.Packet, allowedProtocols map[string]bool) {
 	ipLayer := packet.Layer(layers.LayerTypeIPv4)
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	udpLayer := packet.Layer(layers.LayerTypeUDP)
@@ -64,23 +64,31 @@ func logPacketInfo(deviceName string, packet gopacket.Packet) {
 	msg := "[%s] %s | Len=%d | "
 	args := []interface{}{deviceName, time.Now().Format("15:04:05"), len(packet.Data())}
 
-	if ipLayer != nil {
+	if len(packet.Data()) > 1024 {
+		logger.Warning("Large packet detected! %d bytes", len(packet.Data()))
+	}
+
+	if ipLayer != nil && (allowedProtocols["IPv4"] || allowedProtocols["IPv6"]) {
 		ip := ipLayer.(*layers.IPv4)
 		msg += "IP %s -> %s "
 		args = append(args, ip.SrcIP, ip.DstIP)
 	}
 
-	if tcpLayer != nil {
+	if tcpLayer != nil && allowedProtocols["TCP"] {
 		tcp := tcpLayer.(*layers.TCP)
 		msg += "| TCP %d -> %d"
 		args = append(args, tcp.SrcPort, tcp.DstPort)
-	} else if udpLayer != nil {
+	}
+
+	if udpLayer != nil && allowedProtocols["UDP"] {
 		udp := udpLayer.(*layers.UDP)
 		msg += "| UDP %d -> %d"
 		args = append(args, udp.SrcPort, udp.DstPort)
-	} else {
-		msg += "| Other protocol"
 	}
 
 	logger.Info(msg, args...)
+}
+
+func FindDevices() ([]pcap.Interface, error) {
+	return pcap.FindAllDevs()
 }

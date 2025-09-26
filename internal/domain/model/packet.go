@@ -1,34 +1,14 @@
 package model
 
-import (
-	"time"
+type NetworkProtocol int
 
-	"github.com/google/gopacket"
+const (
+	IPv4 NetworkProtocol = iota
+	IPv6
+	TCP
+	UDP
 )
 
-type PacketInfo struct {
-	DeviceName    string
-	Timestamp     time.Time
-	Length        int
-	SourceIP      string
-	DestinationIP string
-	Protocol      string
-	SourcePort    uint16
-	DestPort      uint16
-	RawPacket     gopacket.Packet
-}
-
-type NetworkInterface struct {
-	Name        string
-	Description string
-	IsActive    bool
-}
-
-type CaptureConfig struct {
-	Interfaces    []NetworkInterface
-	LocalIP       string
-	SnapshotLen   int32
-	Promiscuous   bool
-	Timeout       time.Duration
-	FilterPackets bool
+type PacketFilter struct {
+	AllowedProtocols []NetworkProtocol
 }
