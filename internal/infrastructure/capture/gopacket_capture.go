@@ -88,3 +88,7 @@ func logPacketInfo(deviceName string, packet gopacket.Packet, allowedProtocols m
 
 	logger.Info(msg, args...)
 }
+
+func FindDevices() ([]pcap.Interface, error) {
+	return pcap.FindAllDevs()
+}

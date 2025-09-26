@@ -3,16 +3,15 @@ package application
 import (
 	"fmt"
 	"log"
-	"net"
 
 	"github.com/Julia-Marcal/packet-scope/internal/domain/filters"
 	"github.com/Julia-Marcal/packet-scope/internal/domain/model"
 	"github.com/Julia-Marcal/packet-scope/internal/infrastructure/capture"
-	"github.com/google/gopacket/pcap"
+	"github.com/Julia-Marcal/packet-scope/pkg/utils"
 )
 
 func StartAnalysis() error {
-	devices, err := pcap.FindAllDevs()
+	devices, err := capture.FindDevices()
 	if err != nil {
 		return fmt.Errorf("failed to find network interfaces: %w", err)
 	}
@@ -21,7 +20,7 @@ func StartAnalysis() error {
 		return fmt.Errorf("no network interfaces found - try running with elevated privileges")
 	}
 
-	localIP, err := getLocalIP()
+	localIP, err := utils.GetLocalIP()
 	if err != nil {
 		return fmt.Errorf("failed to get local IP: %w", err)
 	}
@@ -38,15 +37,4 @@ func StartAnalysis() error {
 	}
 	capture.StartCapture(devices, localIP, filters.FilterProtocolsType(packetFilter))
 	return nil
-}
-
-func getLocalIP() (string, error) {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-	return localAddr.IP.String(), nil
 }
